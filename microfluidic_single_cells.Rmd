@@ -1,0 +1,29 @@
+---
+title: "Microfluidic Single Cells"
+author: "Niels Hanson"
+output:
+  html_document:
+    keep_md: yes
+    fig_caption: true
+    theme: readable
+    toc: yes
+    number_sections: yes
+csl: ieee.csl
+bibliography: microfluidic_single_cells.bib
+---
+
+# Summary
+
+This report summarizes the single-cell/metagenomic analysis of [[@Leung:2012vu]].
+
+# Kernel Densities of GC Content
+
+This is text before the figure.
+
+```{r fig.cap="**Figure 1**: Hello"}
+plot(rnorm(100))
+```
+
+This is text after the figure.
+
+# Bibliography
