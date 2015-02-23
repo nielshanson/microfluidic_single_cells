@@ -1,29 +1,169 @@
 ---
 title: "Microfluidic Single Cells"
-author: "Niels Hanson"
+author: "Niels W. Hanson, Kishori M. Konwar"
+csl: ieee.csl
 output:
   html_document:
+    fig_caption: yes
     keep_md: yes
-    fig_caption: true
+    number_sections: yes
     theme: readable
     toc: yes
-    number_sections: yes
-csl: ieee.csl
 bibliography: microfluidic_single_cells.bib
 ---
 
-# Summary
-
-This report summarizes the single-cell/metagenomic analysis of [[@Leung:2012vu]].
-
-# Kernel Densities of GC Content
-
-This is text before the figure.
-
-```{r fig.cap="**Figure 1**: Hello"}
-plot(rnorm(100))
+```{r echo=FALSE}
+wd = "~/Dropbox/projects/microfluidic_single_cells/"
 ```
 
-This is text after the figure.
+# Summary
+
+This report summarizes the single-cell/metagenomic analysis of three different environments, isolate genomes (Environment 1), Oral Microbiome (Environment 2), and a sediment microbiome (Environment 3) [[@Leung:2012vu]]. It consists of Kernal density plot based on GC Content, hierarchical clustering based on taxonomic assignments by the LCA algorithm popularized in MEGAN [[@Huson:2007jl]], and a comparison of relative taxonomic abundance via three different taxonomic estimation methods: eggNOG [[@Jensen:2007cc]], MEGAN [[@Huson:2007jl]], and MLTreeMap [[@Stark:2010hg]].
+
+## Files
+
+This analysis consists of the following files in the [data/]() folder:
+
+* [LBL_GC_Content_Env.txt.gz](): GC content percentages for each read in each of the environments.
+* [dendrogram_table_minus_control.csv.gz](): Table of relative taxonomic MEGAN assignments based on a blastx using the RefSeq database.
+* [environment_taxa.txt.gz](): Long-table of taxnomic assignments for each sample using eggNOG, MEGAN (RefSeq), and MLTreeMap.
+
+# Analysis
+
+Here we go though the particulars of the analysis.
+
+## Required Libraries
+
+Load required libraries.
+
+```{r warning=FALSE, message=FALSE}
+library("lattice")
+library("gplots")
+library("dplyr")
+library("reshape2")
+library("pvclust")
+```
+
+## Kernel Densities of GC Content
+
+Load the GC data.
+
+```{r }
+all_gc <- read.table(paste(wd,"data/LBL_GC_Content_Env.txt.gz", sep=""), header=TRUE, sep = "\t")
+head(all_gc)
+```
+
+Print plots for each environment.
+
+```{r fig.cap="**Figure 1**: GC Percentage Densities for Samples from Environment 1."}
+densityplot(~ GC | name, subset(all_gc, Environment=="Environment 1"), 
+                         plot.points = FALSE, xlab="GC Content (Percent)", 
+                         ylab="Density", 
+                         col="red")
+```
+
+```{r fig.cap="**Figure 2**: GC Percentage Densities for Samples from Environment 2."}
+densityplot(~ GC | name, subset(all_gc, Environment=="Environment 2"), 
+                         plot.points = FALSE, xlab="GC Content (Percent)", 
+                         ylab="Density", 
+                         col="blue")
+```
+
+```{r fig.cap="**Figure 3**: GC Percentage Densities for Samples from Environment 3."}
+densityplot(~ GC | name, subset(all_gc, Environment=="Environment 3"), 
+                         plot.points = FALSE, xlab="GC Content (Percent)", 
+                         ylab="Density", 
+                         col="dark green")
+```
+
+```{r fig.height=3, fig.width=8, fig.cap="**Figure 4**: GC Percentage Densities for all samples and environments."}
+densityplot(~ GC|Environment, all_gc, 
+            groups=name, 
+            plot.points = FALSE, 
+            xlab="GC Content (Percent)", 
+            ylab="Density", main="% GC Content by Environment",  
+            panel = function(..., col) panel.densityplot(..., col = c("dark grey","red","blue","dark green")[packet.number()]), 
+            layout=c(4,1))
+```
+
+## Hierarchical Clustering
+
+Basic hierarchical clustering based on MEGAN taxonomic estimates.
+
+```{r fig.width=8, fig.height=8, fig.cap="**Figure 5**: GC Percentage Densities for all samples and environments."}
+dendro_table <- read.csv(paste(wd, "data/dendrogram_table_minus_control.csv.gz", sep=""), header=T, row.names=1)
+# dendro_table <- dendro_table[, !(names(dendro_table) %in% c("e62", "o21", "e40"))]
+tree <-pvclust(dendro_table, method.hclust="complete", method.dist="manhattan", nboot=10)
+plot(tree)
+```
+
+## Taxonomic Barplots
+
+```{r}
+env_taxa_df <- read.table(paste(wd,"data/environment_taxa.txt.gz", sep=""), header=TRUE, sep="\t")
+env_taxa_df$species <- factor(env_taxa_df$species,levels=rev(unique(env_taxa_df$species)))
+```
+
+Plot each of the bar plots.
+
+```{r fig.width=10, fig.height=10, fig.cap="**Figure 6**: Taxonomic asisgnments based on eggNOG, MEGAN, and MLTreeMap for Environment 1."}
+barchart(species ~ corrected | samp,
+        groups=method,
+        data=subset(env_taxa_df, environment=="Environment 1"),
+        stack = TRUE,
+        horizontal = TRUE,
+        xlab="Percent Read Assignment",
+        main="Taxa Found in Environment 1",
+        auto.key=TRUE)
+```
+
+```{r fig.width=10, fig.height=10, fig.cap="**Figure 7**: Taxonomic asisgnments based on eggNOG, MEGAN, and MLTreeMap for Environment 2."}
+barchart(species ~ corrected | samp,
+        groups=method,
+        data=subset(env_taxa_df, environment=="Environment 2"),
+        stack = TRUE,
+        horizontal = TRUE,
+        xlab="Percent Read Assignment",
+        main="Taxa Found in Environment 2",
+        auto.key=TRUE)
+```
+
+```{r fig.width=10, fig.height=10, fig.cap="**Figure 8**: Taxonomic asisgnments based on eggNOG, MEGAN, and MLTreeMap for Environment 3."}
+barchart(species ~ corrected | samp,
+        groups=method,
+        data=subset(env_taxa_df, environment=="Environment 3"),
+        stack = TRUE,
+        horizontal = TRUE,
+        xlab="Percent Read Assignment",
+        main="Taxa Found in Environment 3",
+        auto.key=TRUE)
+```
+
+Transform into  into percent. Also remove estimates that are not corroborated by at least one other taxonomic estimation method and make up less than 
+
+```{r}
+res <- select(env_taxa_df, species, corrected, method, environment) %>%
+       group_by(environment) %>%
+       mutate(percent=corrected*100/sum(corrected))
+
+res2 <- group_by(res, environment, method, species) %>%
+        summarize(count=sum(percent))
+
+res3 <- select(res2, species, count, method, environment) %>%
+       group_by(species, environment) %>%
+       mutate(count_method=sum(count > 0)) %>%
+       filter(count >=2.5 )
+```
+
+```{r fig.width=8, fig.height=4, fig.cap="**Figure 9**: Taxonomic asisgnments based on eggNOG, MEGAN, and MLTreeMap for all environments."}
+barchart(species ~ count | environment,
+        groups=method,
+        data=res3,
+        stack = TRUE,
+        horizontal = TRUE,
+        layout = c(3,1),
+        xlab="Percent Read Assignment",
+        auto.key=TRUE)
+```
 
 # Bibliography
