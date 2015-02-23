@@ -22,11 +22,11 @@ This report summarizes the single-cell/metagenomic analysis of three different e
 
 ## Files
 
-This analysis consists of the following files in the [data/]() folder:
+This analysis consists of the following files in the [data/](https://github.com/nielshanson/microfluidic_single_cells/blob/master/data/) folder:
 
-* [LBL_GC_Content_Env.txt.gz](): GC content percentages for each read in each of the environments.
-* [dendrogram_table_minus_control.csv.gz](): Table of relative taxonomic MEGAN assignments based on a blastx using the RefSeq database.
-* [environment_taxa.txt.gz](): Long-table of taxnomic assignments for each sample using eggNOG, MEGAN (RefSeq), and MLTreeMap.
+* [LBL_GC_Content_Env.txt.gz](https://rawgit.com/nielshanson/microfluidic_single_cells/master/data/LBL_GC_Content_Env.txt.gz): GC content percentages for each read in each of the environments.
+* [dendrogram_table_minus_control.csv.gz](https://rawgit.com/nielshanson/microfluidic_single_cells/master/data/dendrogram_table_minus_control.csv.gz): Table of relative taxonomic MEGAN assignments based on a blastx using the RefSeq database.
+* [environment_taxa.txt.gz](https://rawgit.com/nielshanson/microfluidic_single_cells/master/data/environment_taxa.txt.gz): Long-table of taxnomic assignments for each sample using eggNOG, MEGAN (RefSeq), and MLTreeMap.
 
 # Analysis
 
